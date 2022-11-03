@@ -46,6 +46,8 @@ class AuthService:
 
     @classmethod
     def verify_token(cls, token: str) -> models.User:
+        logger.debug('verify_token')
+
         exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail='Could not validate credentials',
@@ -74,7 +76,6 @@ class AuthService:
         user_data = models.User.from_orm(user)
         now = datetime.utcnow()
         user_data.last_seen = str(user_data.last_seen)
-        print(user_data)
         payload = {
             'iat': now,
             'nbf': now,
@@ -117,20 +118,20 @@ class AuthService:
         email: str,
         password: str,
     ) -> models.Token:
-        print('QQQQ!!!!QQQQ')
-        exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Incorrect email or password',
-            headers={'WWW-Authenticate': 'Bearer'},
-        )
+        logger.debug('authenticate_user %s', email)
 
         result = await self.session.execute(
             select(tables.User)
             .where(tables.User.email == email)
         )
         user = result.scalar()
-        print(user)
-        print(models.User.from_orm(user))
+
+        exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Incorrect email or password',
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
+
         if not user:
             raise exception
 

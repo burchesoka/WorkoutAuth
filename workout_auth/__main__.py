@@ -11,4 +11,4 @@ uvicorn.run(
 )
 
 # in terminal:
-#  uvicorn workout_api.app:app --host 127.0.0.1 --port 6000
+#  uvicorn workout_api.app:app --host 127.0.0.1 --port 5001
