@@ -11,6 +11,7 @@ from .. import models
 from ..services.auth import (
     AuthService,
     get_current_user,
+    refresh_current_user_token,
 )
 
 
@@ -24,6 +25,7 @@ router = APIRouter(
 
 @router.post(
     '/sign-up/',
+    summary="Create new user",
     response_model=models.Token,
     status_code=status.HTTP_201_CREATED,
 )
@@ -47,6 +49,13 @@ async def sign_in(
         auth_data.username,
         auth_data.password,
     )
+
+
+@router.post('/refresh/', response_model=models.Token)
+def refresh(
+        new_token: models.User = Depends(refresh_current_user_token),
+):
+    return new_token
 
 
 @router.get(
