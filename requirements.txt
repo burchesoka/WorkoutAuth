@@ -1,0 +1,17 @@
+fastapi==0.85.2
+uvicorn==0.18.1
+pydantic==1.9.1
+SQLAlchemy==1.4.39
+psycopg2-binary==2.9.3
+asyncpg==0.25.0
+alembic==1.8.0
+pydantic[dotenv]
+python-jose==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.5
+
+# # Not yet installed:
+# SQLAlchemy-Utils
+# pytest
+# pytest-freezegun
+# requests
