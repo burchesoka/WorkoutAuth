@@ -6,9 +6,10 @@ from sqlalchemy import (
     BigInteger,
     String,
     MetaData,
-
+    ForeignKey,
 )
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 
 
@@ -47,5 +48,15 @@ class User(Base):
     password_hash = Column(String)
 
     name = Column(String(100))
-    status = Column(String)
     last_seen = Column(DateTime, default=datetime.utcnow())
+
+    refresh_token = relationship('RefreshToken', back_populates='user', uselist=False)
+
+
+class RefreshToken(Base):
+    __tablename__ = 'refresh_tokens'
+
+    user_id = Column(ForeignKey('users.id'), primary_key=True)
+    refresh_token = Column(String)
+
+    user = relationship('User', back_populates='refresh_token')

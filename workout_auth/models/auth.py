@@ -1,5 +1,4 @@
 from datetime import datetime
-from enum import Enum
 from pydantic import BaseModel
 from typing import Optional
 
@@ -10,17 +9,17 @@ class Token(BaseModel):
     token_type: str = 'bearer'
 
 
-class UserStatus(str, Enum):
-    user = "user"
-    just_added_by_trainer = 'just_added_by_trainer'
-    new_user = "new-self_added"
-    user_without_trainer = "user_without_trainer"
+class RefreshToken(BaseModel):
+    user_id: int
+    refresh_token: str
+
+    class Config:
+        orm_mode = True
 
 
 class BaseUser(BaseModel):
     email: str
     name: str
-    status: UserStatus
     telegram_id: Optional[int]
     last_seen: datetime
 

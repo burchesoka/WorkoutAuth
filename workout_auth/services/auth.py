@@ -121,10 +121,15 @@ class AuthService:
             name=user_data.name,
             password_hash=self.hash_password(user_data.password),
             last_seen=datetime.utcnow(),
-            status='user',
             telegram_id=user_data.telegram_id,
         )
         self.session.add(user)
+        await self.session.commit()
+        refresh_token = tables.RefreshToken(
+            user_id=user.id,
+            refresh_token=None,
+        )
+        self.session.add(refresh_token)
         await self.session.commit()
         await self.session.refresh(user)
         return self.create_token(user)
