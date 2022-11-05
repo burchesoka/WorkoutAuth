@@ -9,9 +9,13 @@ class Token(BaseModel):
     token_type: str = 'bearer'
 
 
-class RefreshToken(BaseModel):
+class RefreshTokenCreate(BaseModel):
     user_id: int
     refresh_token: str
+
+
+class RefreshToken(RefreshTokenCreate):
+    id: int
 
     class Config:
         orm_mode = True

@@ -16,7 +16,7 @@ from jose import (
 )
 from passlib.hash import bcrypt
 from pydantic import ValidationError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from .. import (
@@ -67,35 +67,7 @@ class AuthService:
 
         return user
 
-    @classmethod
-    def create_token(cls, user: tables.User) -> models.Token:
-        user_data = models.User.from_orm(user)
-        now = datetime.utcnow()
-        user_data.last_seen = str(user_data.last_seen)
-        payload = {
-            'iat': now,
-            'nbf': now,
-            'exp': now + timedelta(seconds=settings.jwt_expires_s),
-            'sub': str(user_data.id),
-            'user': user_data.dict(),
-        }
-        token = jwt.encode(
-            payload,
-            settings.jwt_secret,
-            algorithm=settings.jwt_algorithm,
-        )
-
-        ''' Making refresh token '''
-        payload['exp'] = now + timedelta(days=settings.jwt_refresh_expires_d)
-
-        refresh_token = jwt.encode(
-            payload,
-            settings.jwt_refresh_secret,
-            algorithm=settings.jwt_algorithm,
-        )
-        return models.Token(access_token=token, refresh_token=refresh_token)
-
-    def __init__(self, session: Session = Depends(get_session)):
+    def __init__(self, session: AsyncSession = Depends(get_session)):
         self.session = session
 
     async def register_new_user(
@@ -125,14 +97,44 @@ class AuthService:
         )
         self.session.add(user)
         await self.session.commit()
-        refresh_token = tables.RefreshToken(
-            user_id=user.id,
-            refresh_token=None,
-        )
-        self.session.add(refresh_token)
-        await self.session.commit()
         await self.session.refresh(user)
-        return self.create_token(user)
+        return await self.create_token(user)
+
+    async def create_token(self, user: tables.User) -> models.Token:
+        user_data = models.User.from_orm(user)
+        now = datetime.utcnow()
+        user_data.last_seen = str(user_data.last_seen)
+        payload = {
+            'iat': now,
+            'nbf': now,
+            'exp': now + timedelta(seconds=settings.jwt_expires_s),
+            'sub': str(user_data.id),
+            'user': user_data.dict(),
+        }
+
+        token = jwt.encode(
+            payload,
+            settings.jwt_secret,
+            algorithm=settings.jwt_algorithm,
+        )
+
+        ''' Making refresh token '''
+        payload['exp'] = now + timedelta(days=settings.jwt_refresh_expires_d)
+
+        refresh_token = jwt.encode(
+            payload,
+            settings.jwt_refresh_secret,
+            algorithm=settings.jwt_algorithm,
+        )
+
+        refresh_token_entry = tables.RefreshToken(
+            user_id=user.id,
+            refresh_token=refresh_token,
+        )
+        self.session.add(refresh_token_entry)
+        await self.session.commit()
+
+        return models.Token(access_token=token, refresh_token=refresh_token)
 
     async def authenticate_user(
         self,
@@ -148,7 +150,7 @@ class AuthService:
         user = result.scalar()
 
         exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail='Incorrect email or password',
             headers={'WWW-Authenticate': 'Bearer'},
         )
@@ -159,26 +161,35 @@ class AuthService:
         if not self.verify_password(password, user.password_hash):
             raise exception
 
-        return self.create_token(user)
+        return await self.create_token(user)
+
+    async def logout(self, user):
+        """
+        Logging out user, delete all refresh-tokens.
+        Is it needed to log out on all devices?
+        """
 
     async def refresh_token(self, refresh_token: str) -> models.Token:
-        logger.debug('refresh_token')
+        logger.debug('refresh_token %s', refresh_token)
 
         exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail='Could not validate credentials',
             headers={'WWW-Authenticate': 'Bearer'},
         )
+
         try:
             payload = jwt.decode(
                 refresh_token,
                 settings.jwt_refresh_secret,
                 algorithms=[settings.jwt_algorithm],
+
             )
-        except JWTError:
+        except JWTError as e:
             raise exception from None
 
         user_data = payload.get('user')
+        logger.debug(user_data)
 
         try:
             user_model = models.User.parse_obj(user_data)
@@ -191,7 +202,38 @@ class AuthService:
         )
         user = result.scalar()
 
-        return self.create_token(user)
+        ''' If user was deleted: '''
+        if not user:
+            raise exception
+
+        await self._compare_with_refresh_tokens_in_db(refresh_token, user.id)
+
+        return await self.create_token(user)
+
+    async def _compare_with_refresh_tokens_in_db(self, refresh_token: str, user_id: int):
+        logger.debug('compare received refresh_token with refresh_tokens in db')
+
+        ''' Get all user's refresh tokens stored in db '''
+        result = await self.session.execute(
+            select(tables.RefreshToken)
+            .where(tables.RefreshToken.user_id == user_id)
+        )
+        all_refresh_tokens = result.scalars().all()
+
+        ''' Find accordance received refresh token with tokens in db. '''
+        ''' On success delete chosen token from db, otherwise raise 401 '''
+        for entry in all_refresh_tokens:
+            logger.debug(entry.refresh_token)
+            if refresh_token == entry.refresh_token:
+                await self.session.delete(entry)
+                await self.session.commit()
+                return
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Could not validate credentials',
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
 
 
 def get_current_user(token: str = Depends(oauth2_scheme)) -> models.User:

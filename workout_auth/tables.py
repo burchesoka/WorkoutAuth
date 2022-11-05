@@ -50,13 +50,14 @@ class User(Base):
     name = Column(String(100))
     last_seen = Column(DateTime, default=datetime.utcnow())
 
-    refresh_token = relationship('RefreshToken', back_populates='user', uselist=False)
+    refresh_token = relationship('RefreshToken', back_populates='user')
 
 
 class RefreshToken(Base):
     __tablename__ = 'refresh_tokens'
 
-    user_id = Column(ForeignKey('users.id'), primary_key=True)
+    id = Column(BigInteger, primary_key=True)
+    user_id = Column(ForeignKey('users.id'), nullable=False, index=True)
     refresh_token = Column(String)
 
     user = relationship('User', back_populates='refresh_token')

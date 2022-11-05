@@ -3,4 +3,6 @@ from .auth import (
     UserCreate,
     UserUpdate,
     Token,
+    RefreshTokenCreate,
+    RefreshToken,
 )
