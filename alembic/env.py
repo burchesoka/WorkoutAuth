@@ -5,7 +5,7 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from workout_auth import tables
+from workout_auth.db import tables
 from workout_auth.settings import settings
 
 # this is the Alembic Config object, which provides

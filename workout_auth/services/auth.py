@@ -21,9 +21,9 @@ from sqlalchemy.future import select
 
 from .. import (
     models,
-    tables,
 )
-from ..database import get_session
+from ..db import tables
+from ..db.database import get_session
 from ..settings import settings
 
 
@@ -59,6 +59,7 @@ class AuthService:
             raise exception from None
 
         user_data = payload.get('user')
+        logger.debug(user_data)
 
         try:
             user = models.User.parse_obj(user_data)

@@ -8,6 +8,7 @@ from fastapi import (
 from fastapi.security import OAuth2PasswordRequestForm
 
 from .. import models
+from workout_auth.db.repositories.user import UsersRepository
 from ..services.auth import (
     AuthService,
     get_current_user,
@@ -62,5 +63,10 @@ def refresh(
     '/user/',
     response_model=models.User,
 )
-def get_user(user: models.User = Depends(get_current_user)):
-    return user
+async def get_user(
+        user: models.User = Depends(get_current_user),
+        repository: UsersRepository = Depends(),
+):
+    logger.debug('get_user')
+    user_from_bd = await repository.get_by_id(user.id)
+    return user_from_bd

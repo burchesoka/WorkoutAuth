@@ -1,15 +1,16 @@
 from datetime import datetime
-from pydantic import BaseModel
 from typing import Optional
 
+from .base import BaseSchema
 
-class Token(BaseModel):
+
+class Token(BaseSchema):
     access_token: str
     refresh_token: str
     token_type: str = 'bearer'
 
 
-class RefreshTokenCreate(BaseModel):
+class RefreshTokenCreate(BaseSchema):
     user_id: int
     refresh_token: str
 
@@ -17,11 +18,8 @@ class RefreshTokenCreate(BaseModel):
 class RefreshToken(RefreshTokenCreate):
     id: int
 
-    class Config:
-        orm_mode = True
 
-
-class BaseUser(BaseModel):
+class BaseUser(BaseSchema):
     email: str
     name: str
     telegram_id: Optional[int]
@@ -41,5 +39,3 @@ class User(BaseUser):
     id: int
     api_id: Optional[int]
 
-    class Config:
-        orm_mode = True

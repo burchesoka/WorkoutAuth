@@ -11,9 +11,8 @@ from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlalchemy.future import select
 from fastapi import Depends
 
-from ..database import get_session
-from .. import tables
-
+from ..db.database import get_session
+from ..db import tables
 
 logger = logging.getLogger(__name__)
 

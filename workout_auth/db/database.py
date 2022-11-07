@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from .settings import settings
+from workout_auth.settings import settings
 
 
 DATABASE_URL = f'postgresql+asyncpg://{settings.db_user}:{settings.db_pass}@'\
