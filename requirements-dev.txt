@@ -1,0 +1,6 @@
+# Development dependencies:
+pytest
+# pytest-freezegun
+# requests
+pytest-asyncio
+httpx

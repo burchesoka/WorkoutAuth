@@ -18,7 +18,7 @@ tags_metadata = [
 app = FastAPI(
     title='Workout auth',
     description='Сервис регистрации и авторизации',
-    version='0.1.0',
+    version='0.1.1',
     openapi_tags=tags_metadata,
 )
 
