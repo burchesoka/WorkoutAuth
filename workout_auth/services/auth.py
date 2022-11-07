@@ -83,6 +83,7 @@ class AuthService:
         )
         check_email = result.scalar()
         if check_email:
+            logger.info('user with email: %s exist', user_data.email)
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail='User with this email already exist'
