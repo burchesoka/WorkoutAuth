@@ -129,7 +129,7 @@ async def test_get_current_user(async_client: AsyncClient) -> None:
     )
     assert responce.status_code == status.HTTP_200_OK
 
-    user = models.User.parse_obj(responce.json())
+    user = models.OutUser.parse_obj(responce.json())
 
     assert user.email == "test@test.com"
     assert responce.json()['name'] == "test"
@@ -166,5 +166,5 @@ async def test_fail_get_current_user(async_client: AsyncClient) -> None:
 
 async def test_logout(async_client: AsyncClient) -> None:
     """
-    При выходе удаляются все рефреш токены
+    При выходе удаляются все рефреш токены???
     """

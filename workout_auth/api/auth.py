@@ -54,19 +54,42 @@ async def sign_in(
 
 @router.post('/refresh/', response_model=models.Token)
 def refresh(
-        new_token: models.User = Depends(refresh_current_user_token),
+        new_token: models.OutUser = Depends(refresh_current_user_token),
 ):
     return new_token
 
 
 @router.get(
     '/user/',
-    response_model=models.User,
+    response_model=models.OutUser,
 )
 async def get_user(
-        user: models.User = Depends(get_current_user),
+        user: models.OutUser = Depends(get_current_user),
         repository: UsersRepository = Depends(),
 ):
     logger.debug('get_user')
     user_from_bd = await repository.get_by_id(user.id)
-    return user_from_bd
+    return models.OutUser.parse_obj(user_from_bd)
+
+
+@router.put('/user/',
+            summary="Update user",
+            response_model=models.OutUser,
+            status_code=status.HTTP_200_OK,
+            )
+async def update_user(
+        user_data: models.UserUpdate,
+        user: models.OutUser = Depends(get_current_user),
+        repository: UsersRepository = Depends(),
+):
+    logger.debug('Update user id: %s, data: %s', user.id, user_data)
+
+    user_from_db = await repository.get_by_id(user.id)
+    in_user_data = models.InUser(
+        **user_data.dict(),
+        last_seen=user_from_db.last_seen,
+        password_hash=user_from_db.password_hash,
+        deleted=user_from_db.deleted,
+    )
+
+    return await repository.update(user.id, in_user_data)

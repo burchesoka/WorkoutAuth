@@ -7,6 +7,7 @@ from sqlalchemy import (
     String,
     MetaData,
     ForeignKey,
+    Boolean,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -49,6 +50,8 @@ class User(Base):
 
     name = Column(String(100))
     last_seen = Column(DateTime, default=datetime.utcnow())
+
+    deleted = Column(Boolean, nullable=False, default=False)
 
     refresh_token = relationship('RefreshToken', back_populates='user')
 

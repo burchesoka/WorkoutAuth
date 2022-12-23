@@ -1,29 +1,29 @@
 from datetime import datetime
 from typing import Optional
 
-from .base import BaseSchema
+from .base import MyBaseModel
 
 
-class Token(BaseSchema):
+class Token(MyBaseModel):
     access_token: str
     refresh_token: str
     token_type: str = 'bearer'
 
 
-class RefreshTokenCreate(BaseSchema):
+class InRefreshToken(MyBaseModel):
     user_id: int
     refresh_token: str
 
 
-class RefreshToken(RefreshTokenCreate):
+class RefreshToken(InRefreshToken):
     id: int
 
 
-class BaseUser(BaseSchema):
+class BaseUser(MyBaseModel):
     email: str
     name: str
+    api_id: Optional[int]
     telegram_id: Optional[int]
-    last_seen: datetime
 
 
 class UserCreate(BaseUser):
@@ -31,11 +31,22 @@ class UserCreate(BaseUser):
 
 
 class UserUpdate(BaseUser):
-    api_id: Optional[int]
-    password: str
+    pass
+
+
+class InUser(BaseUser):
+    password_hash: str
+    last_seen: datetime
+    deleted: bool
+
+
+class OutUser(BaseUser):
+    id: int
+    last_seen: datetime
 
 
 class User(BaseUser):
     id: int
-    api_id: Optional[int]
-
+    password_hash: str
+    last_seen: datetime
+    deleted: bool
