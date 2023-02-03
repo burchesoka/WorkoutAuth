@@ -46,6 +46,7 @@ class AuthService:
 
     @classmethod
     def verify_token(cls, token: str) -> models.OutUser:
+        """ TODO? check user in db if he was deleted?"""
         logger.debug('verify_token')
 
         exception = HTTPException(

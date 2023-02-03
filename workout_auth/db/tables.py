@@ -42,8 +42,8 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(BigInteger, primary_key=True)
-    api_id = Column(BigInteger, unique=True, index=True)
-    telegram_id = Column(BigInteger, unique=True, index=True, nullable=False)
+    api_id = Column(BigInteger, unique=True, index=True, nullable=True)
+    telegram_id = Column(BigInteger, unique=True, index=True, nullable=True)
 
     email = Column(String, unique=True)
     password_hash = Column(String)
