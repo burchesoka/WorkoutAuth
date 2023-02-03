@@ -8,7 +8,7 @@ from fastapi import (
 from fastapi.security import OAuth2PasswordRequestForm
 
 from .. import models
-from workout_auth.db.repositories.user import UsersRepository
+from workout_auth.db.repositories import UsersRepository, RefreshTokensRepository
 from ..services.auth import (
     AuthService,
     get_current_user,
@@ -57,6 +57,16 @@ def refresh(
         new_token: models.OutUser = Depends(refresh_current_user_token),
 ):
     return new_token
+
+
+@router.post('/logout/', status_code=status.HTTP_204_NO_CONTENT)
+async def logout(
+        refresh_token: models.RefreshTokenOnly,
+        user: models.OutUser = Depends(get_current_user),
+        repository: RefreshTokensRepository = Depends(),
+):
+    await repository.delete_by_refresh_token(refresh_token)
+    return status.HTTP_204_NO_CONTENT
 
 
 @router.get(

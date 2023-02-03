@@ -32,3 +32,10 @@ class RefreshTokensRepository(BaseRepository[models.InRefreshToken, models.Refre
             delete(self._table)
             .where(self._table.id == entry_id)
         )
+
+    async def delete_by_refresh_token(self, refresh_token: models.RefreshTokenOnly):
+        await self._db_session.execute(
+            delete(self._table)
+            .where(self._table.refresh_token == refresh_token.refresh_token)
+        )
+

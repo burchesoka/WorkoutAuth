@@ -19,6 +19,10 @@ class RefreshToken(InRefreshToken):
     id: int
 
 
+class RefreshTokenOnly(MyBaseModel):
+    refresh_token: str
+
+
 class BaseUser(MyBaseModel):
     email: str
     name: str

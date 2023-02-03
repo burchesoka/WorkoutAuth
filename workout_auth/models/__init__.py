@@ -7,4 +7,5 @@ from .auth import (
     Token,
     InRefreshToken,
     RefreshToken,
+    RefreshTokenOnly,
 )
