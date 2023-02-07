@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 class BaseRepository(Generic[IN_MODEL, MODEL, TABLE], metaclass=ABCMeta):
     def __init__(self, session: AsyncSession = Depends(get_session)):
         self._db_session = session
-        print(self._db_session)
 
     @property
     @abstractmethod
